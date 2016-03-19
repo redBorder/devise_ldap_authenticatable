@@ -8,6 +8,7 @@ This fork changes a few lines to allow the admin binding to be set to the user t
 [![Gem Version](https://badge.fury.io/rb/devise_ldap_authenticatable.png)](http://badge.fury.io/rb/devise_ldap_authenticatable)
 [![Code Climate](https://codeclimate.com/github/cschiewek/devise_ldap_authenticatable.png)](https://codeclimate.com/github/cschiewek/devise_ldap_authenticatable)
 [![Dependency Status](https://gemnasium.com/cschiewek/devise_ldap_authenticatable.png)](https://gemnasium.com/cschiewek/devise_ldap_authenticatable)
+[![Codacy Badge](https://api.codacy.com/project/badge/grade/7938c48535844ddc98e5616dcfbeb0fd)](https://www.codacy.com/app/carrodher/devise_ldap_authenticatable)
 
 Devise LDAP Authenticatable is a LDAP based authentication strategy for the [Devise](http://github.com/plataformatec/devise) authentication framework.
 
