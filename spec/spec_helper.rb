@@ -2,7 +2,6 @@ ENV["RAILS_ENV"] = "test"
 
 require File.expand_path("rails_app/config/environment.rb",  File.dirname(__FILE__))
 require 'rspec/rails'
-require 'rspec/autorun'
 require 'factory_girl' # not sure why this is not already required
 
 # Rails 4.1 and RSpec are a bit on different pages on who should run migrations
@@ -50,6 +49,7 @@ def default_devise_settings!
   ::Devise.ldap_config = "#{Rails.root}/config/#{"ssl_" if ENV["LDAP_SSL"]}ldap.yml"
   ::Devise.ldap_check_group_membership = false
   ::Devise.ldap_check_attributes = false
+  ::Devise.ldap_check_attributes_presence = false
   ::Devise.ldap_auth_username_builder = Proc.new() {|attribute, login, ldap| "#{attribute}=#{login},#{ldap.base}" }
   ::Devise.authentication_keys = [:email]
 end

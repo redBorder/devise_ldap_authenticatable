@@ -1,10 +1,5 @@
 Devise LDAP Authenticatable
 ===========================
-
-Why this fork?
---------------
-This fork changes a few lines to allow the admin binding to be set to the user trying to log in.
-
 [![Gem Version](https://badge.fury.io/rb/devise_ldap_authenticatable.png)](http://badge.fury.io/rb/devise_ldap_authenticatable)
 [![Code Climate](https://codeclimate.com/github/cschiewek/devise_ldap_authenticatable.png)](https://codeclimate.com/github/cschiewek/devise_ldap_authenticatable)
 [![Dependency Status](https://gemnasium.com/cschiewek/devise_ldap_authenticatable.png)](https://gemnasium.com/cschiewek/devise_ldap_authenticatable)
@@ -23,6 +18,8 @@ Prerequisites
  * net-ldap ~> 0.6.0
 
 Note: Rails 3.x / Devise 2.x has been moved to the 0.7 branch.  All 0.7.x gems will support Rails 3, where as 0.8.x will support Rails 4.
+
+If you are transitioning from having Devise manage your users' passwords in the database to using LDAP auth, you may have to update your `users` table to make `encrypted_password` nullable, or else the LDAP user insert will fail.
 
 Usage
 -----
@@ -83,7 +80,9 @@ In initializer  `config/initializers/devise.rb` :
 * `ldap_check_group_membership` _(default: false)_
   * When set to true, the user trying to login will be checked to make sure they are in all of groups specified in the ldap.yml file.
 * `ldap_check_attributes` _(default: false)_
-  * When set to true, the user trying to login will be checked to make sure they have all of the attributes in the ldap.yml file.
+  * When set to true, the user trying to login will be checked to make sure their attributes match those specified in the ldap.yml file.
+* `ldap_check_attributes_presence` _(default: false)_
+  * When set to true, the user trying to login will be checked against all `require_attribute_presence` attributes in the ldap.yml file, either present _(attr: true)_,or not present _(attr: false)_.
 * `ldap_use_admin_to_bind` _(default: false)_
   * When set to true, the admin user will be used to bind to the LDAP server during authentication.
 * `ldap_check_group_membership_without_admin` _(default: false)_
@@ -116,9 +115,9 @@ Devise LDAP Authenticatable uses a running OpenLDAP server to do automated accep
 
 On OS X, this is available out of the box.
 
-On Ubuntu, you can install OpenLDAP with `sudo apt-get install slapd ldap-utils`. If slapd runs under AppArmor, add an exception like this to `/etc/apparmor.d/local/usr.sbin.slapd` to let slapd read our configs.
+On Ubuntu, you can install OpenLDAP with `sudo apt-get install slapd ldap-utils`. If slapd runs under AppArmor, add an exception like this to `/etc/apparmor.d/local/usr.sbin.slapd` to let slapd read our configs (reload using `sudo service apparmor reload` afterwards).
 
-    /path/to/devise_ldap_authenticatable/spec/ldap/** rw,$
+    /path/to/devise_ldap_authenticatable/spec/ldap/** rw,
 
 To start hacking on `devise_ldap_authentication`, clone the github repository, start the test LDAP server, and run the rake test task:
 
@@ -129,7 +128,7 @@ To start hacking on `devise_ldap_authentication`, clone the github repository, s
     # in a separate console or backgrounded
     ./spec/ldap/run-server
 
-    bundle exec rake db:migrate # first time only
+    RAILS_ENV=test bundle exec rake db:migrate # first time only
     bundle exec rake spec
 
 References

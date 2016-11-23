@@ -16,7 +16,7 @@ describe 'Users' do
       reset_ldap_server!
     end
 
-    describe "look up and ldap user" do
+    describe "look up an ldap user" do
       it "should return true for a user that does exist in LDAP" do
         assert_equal true, ::Devise::LDAP::Adapter.valid_login?('example.user@test.com')
       end
@@ -48,7 +48,7 @@ describe 'Users' do
         should_be_validated @user, "secret"
         @user.password = "changed"
         @user.change_password!("secret")
-        should_be_validated @user, "changed", "password was not changed properly on the LDAP sevrer"
+        should_be_validated @user, "changed", "password was not changed properly on the LDAP server"
       end
 
       it "should not allow to change password if setting is false" do
@@ -80,7 +80,7 @@ describe 'Users' do
         it "should create a user in the database" do
           @user = User.find_for_ldap_authentication(:email => "example.user@test.com", :password => "secret")
           assert_equal(User.all.size, 1)
-          User.all.collect(&:email).should include("example.user@test.com")
+          expect(User.all.collect(&:email)).to include("example.user@test.com")
           assert(@user.persisted?)
         end
 
@@ -116,7 +116,7 @@ describe 'Users' do
           ::Devise.case_insensitive_keys = [:email]
 
           @user = User.find_for_ldap_authentication(:email => "EXAMPLE.user@test.com", :password => "secret")
-          User.all.collect(&:email).should include("example.user@test.com")
+          expect(User.all.collect(&:email)).to include("example.user@test.com")
         end
       end
 
@@ -135,32 +135,32 @@ describe 'Users' do
       end
 
       it "should admin should have the proper groups set" do
-        @admin.ldap_groups.should include('cn=admins,ou=groups,dc=test,dc=com')
+        expect(@admin.ldap_groups).to include('cn=admins,ou=groups,dc=test,dc=com')
       end
 
       it "should user should not be allowed in" do
         should_not_be_validated @user, "secret"
       end
     end
-    
+
     describe "check group membership" do
       before do
         @admin = Factory.create(:admin)
         @user = Factory.create(:user)
       end
-      
+
       it "should return true for admin being in the admins group" do
         assert_equal true, @admin.in_ldap_group?('cn=admins,ou=groups,dc=test,dc=com')
       end
-      
+
       it "should return false for admin being in the admins group using the 'foobar' group attribute" do
         assert_equal false, @admin.in_ldap_group?('cn=admins,ou=groups,dc=test,dc=com', 'foobar')
       end
-      
+
       it "should return true for user being in the users group" do
         assert_equal true, @user.in_ldap_group?('cn=users,ou=groups,dc=test,dc=com')
-      end   
-      
+      end
+
       it "should return false for user being in the admins group" do
         assert_equal false, @user.in_ldap_group?('cn=admins,ou=groups,dc=test,dc=com')
       end
@@ -217,6 +217,26 @@ describe 'Users' do
       end
     end
 
+    describe "use attribute presence for authorization" do
+      before do
+        @admin = Factory.create(:admin)
+        @user = Factory.create(:user)
+        ::Devise.ldap_check_attributes_presence = true
+      end
+
+      after do
+        ::Devise.ldap_check_attributes_presence = false
+      end
+
+      it "should admin should not be allowed in" do
+        should_not_be_validated @admin, "admin_secret"
+      end
+
+      it "should user should be allowed in" do
+        should_be_validated @user, "secret"
+      end
+    end
+
     describe "use admin setting to bind" do
       before do
         @admin = Factory.create(:admin)
@@ -229,6 +249,19 @@ describe 'Users' do
       end
     end
 
+    describe 'check password expiration' do
+      before { allow_any_instance_of(Devise::LDAP::Connection).to receive(:authenticated?).and_return(false) }
+
+      it 'should return false for a user that has a fresh password' do
+        allow_any_instance_of(Devise::LDAP::Connection).to receive(:last_message_expired_credentials?).and_return(false)
+        assert_equal false, ::Devise::LDAP::Adapter.expired_valid_credentials?('example.user@test.com','secret')
+      end
+
+      it 'should return true for a user that has an expired password' do
+        allow_any_instance_of(Devise::LDAP::Connection).to receive(:last_message_expired_credentials?).and_return(true)
+        assert_equal true, ::Devise::LDAP::Adapter.expired_valid_credentials?('example.user@test.com','secret')
+      end
+    end
   end
 
   describe "use uid for login" do
@@ -259,7 +292,7 @@ describe 'Users' do
       it "should create a user in the database" do
         @user = User.find_for_ldap_authentication(:uid => "example_user", :password => "secret")
         assert_equal(User.all.size, 1)
-        User.all.collect(&:uid).should include("example_user")
+        expect(User.all.collect(&:uid)).to include("example_user")
       end
 
       it "should call ldap_before_save hooks" do

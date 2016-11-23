@@ -1,7 +1,7 @@
 ## Authorizations
 # Uncomment out the merging for each environment that you'd like to include.
 # You can also just copy and paste the tree (do not include the "authorizations") to each
-# environment if you need something different per environment. 
+# environment if you need something different per environment.
 authorizations: &AUTHORIZATIONS
   allow_unauthenticated_bind: false
   group_base: ou=groups,dc=test,dc=com
@@ -18,6 +18,12 @@ authorizations: &AUTHORIZATIONS
   require_attribute:
     objectClass: inetOrgPerson
     authorizationRole: postsAdmin
+  ## Requires config.ldap_check_attributes_presence in devise.rb to be true
+  ## Can have multiple attributes set to true or false to check presence, all must match all to be authorized
+  require_attribute_presence:
+    mail: true
+    telephoneNumber: true
+    serviceAccount: false
 
 ## Environment
 
